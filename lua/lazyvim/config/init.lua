@@ -15,7 +15,6 @@ local defaults = {
   end,
   -- load the default settings
   defaults = {
-    autocmds = true, -- lazyvim.config.autocmds
     keymaps = true, -- lazyvim.config.keymaps
     -- lazyvim.config.options can't be configured here since that's loaded before lazyvim setup
     -- if you want to disable loading options, add `package.loaded["lazyvim.config.options"] = true` to the top of your init.lua
@@ -167,20 +166,11 @@ local lazy_clipboard
 function M.setup(opts)
   options = vim.tbl_deep_extend("force", defaults, opts or {}) or {}
 
-  -- autocmds can be loaded lazily when not opening a file
-  local lazy_autocmds = vim.fn.argc(-1) == 0
-  if not lazy_autocmds then
-    M.load("autocmds")
-  end
-
   local group = vim.api.nvim_create_augroup("LazyVim", { clear = true })
   vim.api.nvim_create_autocmd("User", {
     group = group,
     pattern = "VeryLazy",
     callback = function()
-      if lazy_autocmds then
-        M.load("autocmds")
-      end
       M.load("keymaps")
       if lazy_clipboard ~= nil then
         vim.opt.clipboard = lazy_clipboard
@@ -189,22 +179,6 @@ function M.setup(opts)
       LazyVim.format.setup()
       LazyVim.news.setup()
       LazyVim.root.setup()
-
-      vim.api.nvim_create_user_command("LazyExtras", function()
-        LazyVim.extras.show()
-      end, { desc = "Manage LazyVim extras" })
-
-      vim.api.nvim_create_user_command("LazyHealth", function()
-        vim.cmd([[Lazy! load all]])
-        vim.cmd([[checkhealth]])
-      end, { desc = "Load all plugins and run :checkhealth" })
-
-      local health = require("lazy.health")
-      vim.list_extend(health.valid, {
-        "recommended",
-        "desc",
-        "vscode",
-      })
     end,
   })
 
